@@ -98,7 +98,7 @@ function render_ccs_easy_cap_settings_page(){
 				  	  Addition: <input type="checkbox" name="ccs_easycap_math_ops[]" value="add" <?= in_array('add', $ops) ? 'checked' : '' ?> />
 				  	</td>
 				  	<td>
-				  	  Substraction: <input type="checkbox" name="ccs_easycap_math_ops[]" value="sub" <?= in_array('sub', $ops) ? 'checked' : '' ?> />
+				  	  Subtraction: <input type="checkbox" name="ccs_easycap_math_ops[]" value="sub" <?= in_array('sub', $ops) ? 'checked' : '' ?> />
 				  	</td>
 				  	<td>
 				  	  Multiplication: <input type="checkbox" name="ccs_easycap_math_ops[]" value="mul" <?= in_array('mul', $ops) ? 'checked' : '' ?> />
