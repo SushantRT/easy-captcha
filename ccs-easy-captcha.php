@@ -230,40 +230,43 @@ add_action('template_redirect', 'ccs_verify_captcha');
 function ccs_easycap_ajaxscript() {
 	$tok_secret = get_option('ccs_easycap_tok_secret');
 	$ans_secret = get_option('ccs_easycap_ans_secret');
-	$loader = base64_encode(file_get_contents(__DIR__."/checking.gif"));
 	?>
 	<script type="text/javascript">
 
-		$(document).ready(function(){
-			$("form").submit(function(e){
+		jQuery(document).ready(function(){
+			jQuery("form").submit(function(e){
 				e.preventDefault();
 				var self = this;
 
-				var <?= $tok_secret ?> = $(this).find('input[name=<?= $tok_secret ?>]').val();
-				var <?= $ans_secret ?> = $(this).find('input[name=<?= $ans_secret ?>]').val();
+				var <?= $tok_secret ?> = jQuery(this).find('input[name=<?= $tok_secret ?>]').val();
+				var <?= $ans_secret ?> = jQuery(this).find('input[name=<?= $ans_secret ?>]').val();
 
-				$(self).find('.captcha-res').html('<span class="ccs-easycap-blinking">Verifying</span>');
+				if(<?= $tok_secret ?> != undefined){
+					jQuery(self).find('.captcha-res').html('<span class="ccs-easycap-blinking">Verifying</span>');
 
-				jQuery.ajax({
-		          type:"POST",
-		          url: "<?= get_site_url() ?>/wp-admin/admin-ajax.php",
-		          data: {
-		              action: "ccs_verify_captcha_js",
-		              <?= $tok_secret ?>: <?= $tok_secret ?>,
-		              <?= $ans_secret ?>: <?= $ans_secret ?>,
-		          },
-		          success:function(result){       
-		            if(result == 'true'){
-		            	self.submit();
-		            }
-		            else{
-		            	$(self).find('.captcha-res').text('Wrong Captcha');
-		            }
-		          },
-		          error: function(errorThrown){
-		          	console.log(errorThrown);
-		          }
-		        });
+					jQuery.ajax({
+			          type:"POST",
+			          url: "<?= get_site_url() ?>/wp-admin/admin-ajax.php",
+			          data: {
+			              action: "ccs_verify_captcha_js",
+			              <?= $tok_secret ?>: <?= $tok_secret ?>,
+			              <?= $ans_secret ?>: <?= $ans_secret ?>,
+			          },
+			          success:function(result){       
+			            if(result == 'true'){
+			            	self.submit();
+			            }
+			            else{
+			            	jQuery(self).find('.captcha-res').text('Wrong Captcha');
+			            }
+			          },
+			          error: function(errorThrown){
+			          	console.log(errorThrown);
+			          }
+			        });
+				}else{
+					self.submit();
+				}
 		    });
 	  	});  
 	</script>
