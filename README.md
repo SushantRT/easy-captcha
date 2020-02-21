@@ -9,7 +9,7 @@ Installation Instructions -
 
 To display captcha on your form you can use one of following methods -
 1) Using Shortcode : [ccs_easy_captcha] (Recommended)
-2) Using PHP function : <?php echo do_shortcode('[ccs_easy_captcha]'); ?> (For Developers)
+2) Using PHP function : echo do_shortcode('[ccs_easy_captcha]'); (For Developers)
 
 Important Note: By default 'Addition (+)' operation is enabled. It's recommended to keep at least one option selected at any point of time.
 
