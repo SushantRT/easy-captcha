@@ -19,6 +19,7 @@
 function ccs_easy_captcha_on_activate(){
 
 	//This token is used just to randomize input names
+	$ccs_easycap_app_secret = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 10); //This is used to append before answer
 	$ccs_easycap_tok_secret = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 10);
 	$ccs_easycap_ans_secret = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 10);
 
@@ -27,6 +28,7 @@ function ccs_easy_captcha_on_activate(){
 		$ccs_easycap_ans_secret = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 10);
 	}
 
+	add_option( 'ccs_easycap_app_secret', $ccs_easycap_app_secret);
 	add_option( 'ccs_easycap_tok_secret', $ccs_easycap_tok_secret);
 	add_option( 'ccs_easycap_ans_secret', $ccs_easycap_ans_secret);
 
@@ -49,6 +51,7 @@ register_deactivation_hook( __FILE__, 'ccs_easy_captcha_on_deactivate' );
 */
 function ccs_easy_captcha_on_uninstall(){
 	unregister_setting( 'ccs_easycap_options_group','ccs_easycap_math_ops' );
+	delete_option('ccs_easycap_app_secret');
 	delete_option('ccs_easycap_tok_secret');
 	delete_option('ccs_easycap_ans_secret');
 	delete_option('ccs_easycap_math_ops');
@@ -156,6 +159,7 @@ add_action( 'admin_init', 'ccs_easycap_register_settings' );
 
 function ccs_easy_captcha_show_fields($atts) {
 
+	$app_secret = get_option( 'ccs_easycap_app_secret');
 	$tok_secret = get_option( 'ccs_easycap_tok_secret');
 	$ans_secret = get_option( 'ccs_easycap_ans_secret');
 	$opArr = get_option( 'ccs_easycap_math_ops');
@@ -190,7 +194,7 @@ function ccs_easy_captcha_show_fields($atts) {
 		<label class="control-label col-sm-4" for="ccs_ps_ans">'.$num1.$opSym.$num2.' = </label>
 		<div class="col-sm-8">
 			<input name="'.$ans_secret.'" type="text" class="form-control" placeholder="Enter Answer" style="border: 1px solid #EEE;" required>
-			<input name="'.$tok_secret.'" type="hidden" value="'.password_hash($ans, PASSWORD_DEFAULT).'" />
+			<input name="'.$tok_secret.'" type="hidden" value="'.password_hash($ans.$app_secret, PASSWORD_DEFAULT).'" />
 			<span class="captcha-res"></span>
 		</div>
 	</div>';
@@ -206,18 +210,9 @@ add_shortcode('ccs_easy_captcha', 'ccs_easy_captcha_show_fields');
  */
 function ccs_verify_captcha()
 {
-	$tok_secret = get_option('ccs_easycap_tok_secret');
-	$ans_secret = get_option('ccs_easycap_ans_secret');
-
-	$flag = (isset($_POST[$tok_secret]) && isset($_POST[$ans_secret])) ? true : false;
-	if($flag){
-		if(!password_verify($_POST[$ans_secret], $_POST[$tok_secret])){
-			header('location:'.$_SERVER['HTTP_REFERER']);
-			exit();
-		}
-		else{
-
-		}
+	if(!verifyCap($_POST)){
+		header('location:'.$_SERVER['HTTP_REFERER']);
+		exit();
 	}
 }
 add_action('template_redirect', 'ccs_verify_captcha');
@@ -295,19 +290,22 @@ add_action( 'wp_ajax_ccs_verify_captcha_js', 'ccs_verify_captcha_js' );
 add_action( 'wp_ajax_nopriv_ccs_verify_captcha_js', 'ccs_verify_captcha_js' );
 
 function ccs_verify_captcha_js() {
+	if(!verifyCap($_POST)){
+		echo "false";
+		die();
+	}
+	else{
+		echo "true";
+		die();
+	}
+}
 
+function verifyCap($data){
+	$app_secret = get_option('ccs_easycap_app_secret');
 	$tok_secret = get_option('ccs_easycap_tok_secret');
 	$ans_secret = get_option('ccs_easycap_ans_secret');
 
-	$flag = (isset($_POST[$tok_secret]) && isset($_POST[$ans_secret])) ? true : false;
-	if($flag){
-		if(!password_verify($_POST[$ans_secret], $_POST[$tok_secret])){
-			echo "false";
-			die();
-		}
-		else{
-			echo "true";
-			die();
-		}
-	}
+	$easyCap = (isset($data[$tok_secret]) && isset($data[$ans_secret])) ? true : false;
+
+	return $easyCap ? password_verify($data[$ans_secret].$app_secret, $data[$tok_secret]) : true;
 }
